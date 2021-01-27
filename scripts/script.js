@@ -8,16 +8,47 @@ function Ray(source, direction = [1, 1]) {
     this.bounces = []
 }
 
-function Mirror(p1 = [0, 0], p2 = [0, 0]) {
+function Laser(p1, p2 = [0, 0]) {
+    this.p1 = p1
+    this.p2 = p2
+    Object.defineProperty(this, 'normal', {
+        get: function () {
+            v = [this.p1[0] - this.p2[0], this.p1[1] - this.p2[1]]
+            if (v[1] == 0)
+                if (v[0] < 0)
+                    return [0, -1]
+                else
+                    return [0, 1]
+            if (v[1] > 0)
+                return [-1, v[0] / v[1]]
+
+            return [1, -v[0] / v[1]]
+        }
+    });
+    this.createRays = function (density) {
+        density = Math.max(0.1, density)
+        v = [p1[0] - p2[0], p1[1] - p2[1]]
+        vLength = Math.sqrt(v[0] ** 2 + v[1] ** 2)
+        v[0] /= vLength
+        v[1] /= vLength
+        for (let n = 0; n < vLength / density; n++) {
+            rays.push(new Ray([
+                this.p1[0] - n * v[0] * density / vLength,
+                this.p1[1] - n * v[1] * density / vLength],
+                this.normal))
+        }
+
+    }
+}
+
+function Mirror(p1, p2 = [0, 0]) {
     this.p1 = p1
     this.p2 = p2
 }
 
-var mirrors = [
-    new Mirror([200, 100], [190, 300]),
-]
-
-var rays = [new Ray([600, 400], [0, 1])]
+var mirrors = []
+var lights = []
+var rays = []
 
 function drawRays() {
     ctx.beginPath()
@@ -39,22 +70,29 @@ function drawMirrors() {
     ctx.strokeStyle = secondaryColor
     for (mirror of mirrors) {
         ctx.moveTo(mirror.p1[0], mirror.p1[1]);
-        for (bounce of ray.bounces) {
-            ctx.lineTo(mirror.p2[0], mirror.p2[1]);
-        }
+        ctx.lineTo(mirror.p2[0], mirror.p2[1]);
+    }
+    ctx.stroke()
+}
+
+function updateLights() {
+    ctx.beginPath()
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = primaryColor
+    rays = []
+    for (light of lights) {
+        ctx.moveTo(light.p1[0], light.p1[1]);
+        ctx.lineTo(light.p2[0], light.p2[1]);
+        light.createRays(document.getElementById("densityslider").value)
     }
     ctx.stroke()
 }
 
 function traceAll() {
     for (const ray of rays) {
-        ray.bounces = recursiveRaytrace(ray.source, ray.direction, 100)
+        ray.bounces = recursiveRaytrace(ray.source, ray.direction, 2048)
     }
 }
-
-traceAll()
-drawRays()
-drawMirrors()
 
 
 function recursiveRaytrace(position, direction, remainingBounces, bounces = []) {

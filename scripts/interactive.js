@@ -1,4 +1,6 @@
 var isDrawStart = false;
+var drawMode = 'mirrors'
+var activeObject
 
 const getClientOffset = (event) => {
     var rect = canvas.getBoundingClientRect();
@@ -16,8 +18,17 @@ const getClientOffset = (event) => {
 }
 
 const mouseDownListener = (event) => {
-    mirrorObject = new Mirror([getClientOffset(event).x, getClientOffset(event).y])
-    mirrors.push(mirrorObject)
+    switch (drawMode) {
+        default:
+        case 'mirrors':
+            activeObject = new Mirror([getClientOffset(event).x, getClientOffset(event).y])
+            mirrors.push(activeObject)
+            break;
+        case 'lasers':
+            activeObject = new Laser([getClientOffset(event).x, getClientOffset(event).y])
+            lights.push(activeObject)
+            break;
+    }
     isDrawStart = true;
 }
 
@@ -26,10 +37,11 @@ const mouseMoveListener = (event) => {
     if (!isDrawStart) return
 
     lineCoordinates = getClientOffset(event)
-    mirrorObject.p2[0] = lineCoordinates.x
-    mirrorObject.p2[1] = lineCoordinates.y
+    activeObject.p2[0] = lineCoordinates.x
+    activeObject.p2[1] = lineCoordinates.y
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+    updateLights()
     traceAll()
     drawRays()
     drawMirrors()

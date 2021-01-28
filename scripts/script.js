@@ -8,9 +8,10 @@ function Ray(source, direction = [1, 1]) {
     this.bounces = []
 }
 
-function Laser(p1, p2 = [0, 0]) {
+function Laser(p1, p2 = [-1, -1]) {
     this.p1 = p1
     this.p2 = p2
+    this.valid = false
     Object.defineProperty(this, 'normal', {
         get: function () {
             v = [this.p1[0] - this.p2[0], this.p1[1] - this.p2[1]]
@@ -40,9 +41,10 @@ function Laser(p1, p2 = [0, 0]) {
     }
 }
 
-function Mirror(p1, p2 = [0, 0]) {
+function Mirror(p1, p2 = [-1, -1]) {
     this.p1 = p1
     this.p2 = p2
+    this.valid = false
 
     this.reflect = function (direction, normal, rayOrigin, intersection) {
         normalSquared = normal[0] ** 2 + normal[1] ** 2
@@ -52,7 +54,15 @@ function Mirror(p1, p2 = [0, 0]) {
     }
 }
 
-function ParabolicMirror(p1, p2 = [0, 0], focalpoint = 300) {
+function Block(p1, p2 = [-1, -1]) {
+    Mirror.call(this, p1, p2) //inherits from mirror
+
+    this.reflect = function (direction, normal, rayOrigin, intersection) {
+        return null
+    }
+}
+
+function ParabolicMirror(p1, p2 = [-1, -1], focalpoint = 300) {
     Mirror.call(this, p1, p2) //inherits from mirror
     this.focalpoint = focalpoint
     Object.defineProperty(this, 'rotation', {
@@ -84,7 +94,7 @@ function ParabolicMirror(p1, p2 = [0, 0], focalpoint = 300) {
     }
 }
 
-function Lens(p1, p2 = [0, 0], focalpoint = 300) {
+function Lens(p1, p2 = [-1, -1], focalpoint = 300) {
     ParabolicMirror.call(this, p1, p2, focalpoint) //inherits from parabolic mirror
     Object.defineProperty(this, 'f1', {
         get: () => {
@@ -161,29 +171,37 @@ function drawRays() {
 
 
 function drawMirrors() {
-    ctx.lineWidth = 3
     ctx.strokeStyle = secondaryColor
     ctx.fillStyle = primaryColor
     for (mirror of mirrors) {
         if (mirror instanceof Lens) {
             ctx.beginPath()
             ctx.globalAlpha = 0.4
+            ctx.lineWidth = 1
             ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
                 2 * mirror.radius, mirror.radius / 10,
                 mirror.rotation, 0, 2 * Math.PI)
 
             ctx.fill()
-            ctx.stroke()
             ctx.globalAlpha = 1
+            ctx.stroke()
         } else if (mirror instanceof ParabolicMirror) {
             ctx.beginPath()
+            ctx.lineWidth = 1
             ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
                 2 * mirror.radius, mirror.radius / 2,
                 mirror.rotation, Math.PI, 2 * Math.PI)
 
             ctx.stroke()
+        } else if (mirror instanceof Block) {
+            ctx.beginPath()
+            ctx.lineWidth = 5
+            ctx.moveTo(mirror.p1[0], mirror.p1[1])
+            ctx.lineTo(mirror.p2[0], mirror.p2[1])
+            ctx.stroke()
         } else {
             ctx.beginPath()
+            ctx.lineWidth = 3
             ctx.moveTo(mirror.p1[0], mirror.p1[1])
             ctx.lineTo(mirror.p2[0], mirror.p2[1])
             ctx.stroke()
@@ -204,7 +222,7 @@ function drawLights() {
 
 function updateLights() {
     rays = []
-    density = Math.sqrt(document.getElementById("densityslider").value)
+    density = Math.exp(document.getElementById("densityslider").value)
     density = Math.max(0.5, density)
     for (light of lights) {
         light.createRays(density)
@@ -213,7 +231,7 @@ function updateLights() {
 
 function traceAll() {
     for (const ray of rays) {
-        ray.bounces = recursiveRaytrace(ray.source, ray.direction, 1024)
+        ray.bounces = recursiveRaytrace(ray.source, ray.direction, 512)
     }
 }
 
@@ -231,6 +249,8 @@ function recursiveRaytrace(position, direction, remainingBounces, bounces = []) 
         }
         if (intersection.dist < Infinity) {
             bounces.push(intersection.p)
+            if (intersection.dir == null)
+                return bounces
             return recursiveRaytrace(intersection.p, intersection.dir, remainingBounces - 1, bounces)
         }
     } else {

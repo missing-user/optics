@@ -27,6 +27,27 @@
 </head>
 
 <body>
+
+  <canvas id="canvas"></canvas>
+  <style>
+    #canvas {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .no-copy {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
   <!-- detect color scheme -->
   <script type="text/javascript">
     var secondaryColor = "#F00"
@@ -35,39 +56,35 @@
     //set the colorscheme
     if (window.matchMedia) {
       window.matchMedia("(prefers-color-scheme: dark)").addListener(e => {
-        primaryColor = e.matches
-          ? "#d3d7cf"
-          : "#333";
-        console.log("theme change detected, setting color to", primaryColor);
-      });
+        primaryColor = e.matches ? "#d3d7cf" : "#333"
+        console.log("theme change detected, setting color to", primaryColor)
+      })
       if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-        primaryColor = "#d3d7cf";
+        primaryColor = "#d3d7cf"
     }
   </script>
-  <div class="container">
+  <div class="container no-copy">
     <div class="row">
       <div class="column" style="margin-top: 25%">
-        <h4>Optics</h4>
-        <button onclick="clearAll()">Clear</button>
+        <h1>Optics</h1>
         <hr>
       </div>
     </div>
-
-    <div class="row">
-      <div class="column">
-        <canvas id="canvas" width="800" height="500"></canvas>
-      </div>
-    </div>
-    <div class="row">
-      <div class="one-half column">
-        <input id="densityslider" type="range" name="" value="2500" max="2500" oninput="updateLights(); updateSim()">
-        <label for="densityslider">ray density</label>
-      </div>
+    <div class="row" id="safeZone">
       <div class="one-half column">
         <button onclick="drawMode='lasers'">Lasers</button>
         <button onclick="drawMode='mirrors'">Mirrors</button>
         <button onclick="drawMode='parabolas'">Parabolic mirror</button>
         <button onclick="drawMode='lenses'">Lenses</button>
+        <button onclick="drawMode='blockers'">Blockers</button>
+        <button class="button-primary" onclick="clearAll()">Clear</button>
+      </div>
+      <div class="one-half column">
+        <label for="densityslider">ray density</label>
+        <input id="densityslider" type="range" name="" step="any" value="1" max="5"
+          oninput="updateLights(); updateSim()" style="margin-bottom: 3rem;">
+        <label for="focalDistance">focal distance</label>
+        <input id="focalDistance" type="range" name="" step="any" value="300" min="-1000" max="1000">
       </div>
     </div>
   </div>

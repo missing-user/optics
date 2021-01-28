@@ -23,11 +23,15 @@ const mouseDownListener = (event) => {
         case 'mirrors':
             activeObject = new Mirror([getClientOffset(event).x, getClientOffset(event).y])
             mirrors.push(activeObject)
-            break;
+            break
         case 'lasers':
             activeObject = new Laser([getClientOffset(event).x, getClientOffset(event).y])
             lights.push(activeObject)
-            break;
+            break
+        case 'lenses':
+            activeObject = new Lens([getClientOffset(event).x, getClientOffset(event).y])
+            mirrors.push(activeObject)
+            break
     }
     isDrawStart = true;
 }
@@ -39,12 +43,10 @@ const mouseMoveListener = (event) => {
     lineCoordinates = getClientOffset(event)
     activeObject.p2[0] = lineCoordinates.x
     activeObject.p2[1] = lineCoordinates.y
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    updateLights()
-    traceAll()
-    drawRays()
-    drawMirrors()
+    if (drawMode == 'lasers')
+        updateLights()
+    updateSim()
 }
 
 const mouseupListener = (event) => {

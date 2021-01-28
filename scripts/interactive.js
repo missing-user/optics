@@ -41,6 +41,7 @@ const mouseDownListener = (event) => {
             mirrors.push(activeObject)
             break
     }
+    opticsHistory.push(activeObject)
     isDrawStart = true
 }
 
@@ -71,7 +72,6 @@ const mouseMoveListener = (event) => {
     if (activeObject instanceof Lens || activeObject instanceof ParabolicMirror) {
         activeObject.focalpoint = document.getElementById("focalDistance").value
     }
-    updateLights()
     updateSim()
 }
 
@@ -89,7 +89,6 @@ const mouseupListener = (event) => {
 window.addEventListener('resize', function (event) {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
-    updateLights()
     updateSim()
 })
 

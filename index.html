@@ -14,7 +14,7 @@
     gtag('config', 'UA-179475953-1');
   </script>
   <meta charset="utf-8">
-  <title></title>
+  <title>Optics</title>
   <!-- MOBILE––––––––––––––––––––––– -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600&display=swap" rel="stylesheet">
@@ -72,19 +72,20 @@
     </div>
     <div class="row" id="safeZone">
       <div class="one-half column">
+        <button class="button-primary" onclick="clearAll()">Clear</button>
+        <button class="button-primary" onclick="undo()">Undo</button>
         <button onclick="drawMode='lasers'">Lasers</button>
         <button onclick="drawMode='mirrors'">Mirrors</button>
         <button onclick="drawMode='parabolas'">Parabolic mirror</button>
         <button onclick="drawMode='lenses'">Lenses</button>
         <button onclick="drawMode='blockers'">Blockers</button>
-        <button class="button-primary" onclick="clearAll()">Clear</button>
       </div>
       <div class="one-half column">
         <label for="densityslider">ray density</label>
         <input id="densityslider" type="range" name="" step="any" value="1" max="5"
           oninput="updateLights(); updateSim()" style="margin-bottom: 3rem;">
         <label for="focalDistance">focal distance</label>
-        <input id="focalDistance" type="range" name="" step="any" value="300" min="-1000" max="1000">
+        <input id="focalDistance" type="range" name="" step="any" value="300" min="-500" max="500">
       </div>
     </div>
   </div>

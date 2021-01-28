@@ -142,12 +142,14 @@ function Lens(p1, p2 = [-1, -1], focalpoint = 300) {
     }
 }
 
+var opticsHistory = []
 var mirrors = []
 var lights = []
 var rays = []
 
 function updateSim() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    updateLights()
     traceAll()
     drawRays()
     drawLights()
@@ -301,7 +303,18 @@ function lineIntersects(rayOrigin, direction, mirror) {
     return { p: false, dist: Infinity, dir: direction }
 }
 
+function undo() {
+    lastItem = opticsHistory.pop()
+    if (lastItem instanceof Laser)
+        lights.pop()
+    else
+        mirrors.pop()
+
+    updateSim()
+}
+
 function clearAll() {
+    opticsHistory = []
     lights = []
     rays = []
     mirrors = []

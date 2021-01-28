@@ -72,9 +72,9 @@ var rays = []
 function updateSim() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     traceAll()
+    drawRays()
     drawLights()
     drawMirrors()
-    drawRays()
 }
 
 function drawRays() {
@@ -94,6 +94,7 @@ function drawRays() {
 function drawMirrors() {
     ctx.lineWidth = 3
     ctx.strokeStyle = secondaryColor
+    ctx.fillStyle = "transparent";
     for (mirror of mirrors) {
         if (mirror instanceof Lens) {
             ctx.beginPath()
@@ -127,7 +128,6 @@ function updateLights() {
     rays = []
     density = Math.sqrt(document.getElementById("densityslider").value)
     density = Math.max(0.5, density)
-    console.log(density)
     for (light of lights) {
         light.createRays(density)
     }
@@ -194,7 +194,7 @@ function lineIntersects(rayOrigin, direction, mirror) {
                     dist: (xres ** 2 + yres ** 2), //squared distance
                     dir: mirror instanceof Lens ?
                         transmissionDirection(direction, [xres + rayOrigin[0], yres + rayOrigin[1]], mirror) :
-                        reflectionDirection(direction, (b == 0) ? [0, 1] : [1, -1 / b])
+                        linearReflection(direction, (b == 0) ? [0, 1] : [1, -1 / b])
                 }
     }
     return { p: false, dist: Infinity, dir: direction }
@@ -205,7 +205,12 @@ function transmissionDirection(direction, intersection, lens) {
     return [direction[0] + v[0] / lens.focalpoint, direction[1] + v[1] / lens.focalpoint]
 }
 
-function reflectionDirection(direction, normal) {
+function sphericReflection(direction, intersection, lens) {
+    v = [lens.midpoint[0] - intersection[0], lens.midpoint[1] - intersection[1]]
+    return [-direction[0] + v[1] / lens.focalpoint, -direction[1] + v[0] / lens.focalpoint]
+}
+
+function linearReflection(direction, normal) {
     normalSquared = normal[0] ** 2 + normal[1] ** 2
     dot = direction[0] * normal[0] + direction[1] * normal[1]
     dot /= normalSquared

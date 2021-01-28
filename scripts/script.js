@@ -43,9 +43,16 @@ function Laser(p1, p2 = [0, 0]) {
 function Mirror(p1, p2 = [0, 0]) {
     this.p1 = p1
     this.p2 = p2
+
+    this.reflect = function (direction, normal, rayOrigin, intersection) {
+        normalSquared = normal[0] ** 2 + normal[1] ** 2
+        dot = direction[0] * normal[0] + direction[1] * normal[1]
+        dot /= normalSquared
+        return [direction[0] - 2 * dot * normal[0], direction[1] - 2 * dot * normal[1]]
+    }
 }
 
-function Lens(p1, p2 = [0, 0], focalpoint = 300) {
+function ParabolicMirror(p1, p2 = [0, 0], focalpoint = 300) {
     Mirror.call(this, p1, p2) //inherits from mirror
     this.focalpoint = focalpoint
     Object.defineProperty(this, 'rotation', {
@@ -63,6 +70,22 @@ function Lens(p1, p2 = [0, 0], focalpoint = 300) {
             return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
         }
     })
+
+    this.reflect = function (direction, normal, rayOrigin, intersection) {
+        v = vSub(this.midpoint, intersection)
+        v2 = vSub(this.p2, intersection)
+        r = length(v)
+        gamma = Math.atan2(normal[1], normal[0])
+        alpha = Math.atan2(direction[1], direction[0]) - gamma
+
+        if (length(vSub(v2, v)) > length(v2)) //upper lens half or lower lens half
+            r = -r
+        return [-Math.cos(alpha + gamma + r / this.focalpoint), -Math.sin(alpha + gamma + r / this.focalpoint)]
+    }
+}
+
+function Lens(p1, p2 = [0, 0], focalpoint = 300) {
+    ParabolicMirror.call(this, p1, p2, focalpoint) //inherits from parabolic mirror
     Object.defineProperty(this, 'f1', {
         get: () => {
             b = (this.p2[1] - this.p1[1]) / (this.p2[0] - this.p1[0])
@@ -91,6 +114,22 @@ function Lens(p1, p2 = [0, 0], focalpoint = 300) {
             return vSub(this.midpoint, normal)
         }
     })
+
+    this.reflect = function (direction, normal, rayOrigin, intersection) {
+        v = vSub(this.midpoint, intersection)
+        v2 = vSub(this.p2, intersection)
+        r = length(v)
+        gamma = Math.atan2(normal[1], normal[0])
+        alpha = Math.atan2(direction[1], direction[0]) - gamma
+
+        if (length(vSub(rayOrigin, this.f1)) < length(vSub(rayOrigin, this.f2)))
+            r = -r
+
+        if (length(vSub(v2, v)) > length(v2)) //upper lens half or lower lens half
+            r = -r
+        return [Math.cos(alpha + gamma - r / this.focalpoint), Math.sin(alpha + gamma - r / this.focalpoint)]
+
+    }
 }
 
 var mirrors = []
@@ -136,6 +175,13 @@ function drawMirrors() {
             ctx.fill()
             ctx.stroke()
             ctx.globalAlpha = 1
+        } else if (mirror instanceof ParabolicMirror) {
+            ctx.beginPath()
+            ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
+                2 * mirror.radius, mirror.radius / 2,
+                mirror.rotation, Math.PI, 2 * Math.PI)
+
+            ctx.stroke()
         } else {
             ctx.beginPath()
             ctx.moveTo(mirror.p1[0], mirror.p1[1])
@@ -228,41 +274,11 @@ function lineIntersects(rayOrigin, direction, mirror) {
                 return {
                     p: intersectionPoint, //intersection point
                     dist: (xres ** 2 + yres ** 2), //squared distance
-                    dir: mirror instanceof Lens ?
-                        transmissionDirection(direction, normal, rayOrigin, intersectionPoint, mirror) :
-                        linearReflection(direction, normal)
+                    dir: mirror.reflect(direction, normal, rayOrigin, intersectionPoint)
                 }
             }
 
     return { p: false, dist: Infinity, dir: direction }
-}
-
-function transmissionDirection(direction, normal, rayOrigin, intersection, lens) {
-
-    v = vSub(lens.midpoint, intersection)
-    v2 = vSub(lens.p2, intersection)
-    r = length(v)
-    gamma = Math.atan2(normal[1], normal[0])
-    alpha = Math.atan2(direction[1], direction[0]) - gamma
-
-    if (length(vSub(rayOrigin, lens.f1)) < length(vSub(rayOrigin, lens.f2)))
-        r = -r
-
-    if (length(vSub(v2, v)) > length(v2)) //upper lens half or lower lens half
-        r = -r
-    return [Math.cos(alpha + gamma - r / lens.focalpoint), Math.sin(alpha + gamma - r / lens.focalpoint)]
-}
-
-function sphericReflection(direction, intersection, lens) {
-    v = [lens.midpoint[0] - intersection[0], lens.midpoint[1] - intersection[1]]
-    return [-direction[0] + v[1] / lens.focalpoint, -direction[1] + v[0] / lens.focalpoint]
-}
-
-function linearReflection(direction, normal) {
-    normalSquared = normal[0] ** 2 + normal[1] ** 2
-    dot = direction[0] * normal[0] + direction[1] * normal[1]
-    dot /= normalSquared
-    return [direction[0] - 2 * dot * normal[0], direction[1] - 2 * dot * normal[1]]
 }
 
 function clearAll() {

@@ -32,6 +32,10 @@ const mouseDownListener = (event) => {
             activeObject = new Lens([getClientOffset(event).x, getClientOffset(event).y])
             mirrors.push(activeObject)
             break
+        case 'parabolas':
+            activeObject = new ParabolicMirror([getClientOffset(event).x, getClientOffset(event).y])
+            mirrors.push(activeObject)
+            break
     }
     isDrawStart = true;
 }

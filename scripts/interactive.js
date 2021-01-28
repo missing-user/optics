@@ -1,5 +1,5 @@
 var isDrawStart = false;
-var drawMode = 'mirrors'
+var drawMode = 'lasers'
 var activeObject
 
 const getClientOffset = (event) => {
@@ -19,11 +19,11 @@ const getClientOffset = (event) => {
 
 const mouseDownListener = (event) => {
     switch (drawMode) {
-        default:
         case 'mirrors':
             activeObject = new Mirror([getClientOffset(event).x, getClientOffset(event).y])
             mirrors.push(activeObject)
             break
+        default:
         case 'lasers':
             activeObject = new Laser([getClientOffset(event).x, getClientOffset(event).y])
             lights.push(activeObject)

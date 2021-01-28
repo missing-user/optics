@@ -50,17 +50,45 @@ function Lens(p1, p2 = [0, 0], focalpoint = 300) {
     this.focalpoint = focalpoint
     Object.defineProperty(this, 'rotation', {
         get: () => {
-            return Math.atan2(this.p1[1] - this.p2[1], this.p1[0] - this.p2[0])
+            return Math.atan2(p1[1] - p2[1], p1[0] - p2[0])
         }
     })
     Object.defineProperty(this, 'radius', {
         get: () => {
-            return Math.sqrt((this.p1[0] - this.p2[0]) ** 2 + (this.p1[1] - this.p2[1]) ** 2) / 4
+            return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) / 4
         }
     })
     Object.defineProperty(this, 'midpoint', {
         get: () => {
             return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
+        }
+    })
+    Object.defineProperty(this, 'f1', {
+        get: () => {
+            b = (this.p2[1] - this.p1[1]) / (this.p2[0] - this.p1[0])
+            mult = Math.sign(this.p1[1] - this.p2[1])
+            normal = [-1 * mult, 1 / b * mult]
+            if (b == 0) {
+                if (this.p1[0] < this.p2[0])
+                    normal = [0, -1]
+                else
+                    normal = [0, 1]
+            }
+            return vSub(this.midpoint, normal)
+        }
+    })
+    Object.defineProperty(this, 'f2', {
+        get: () => {
+            b = (this.p2[1] - this.p1[1]) / (this.p2[0] - this.p1[0])
+            mult = Math.sign(this.p1[1] - this.p2[1])
+            normal = [1 * mult, -1 / b * mult]
+            if (b == 0) {
+                if (p1[0] < p2[0])
+                    normal = [0, 1]
+                else
+                    normal = [0, -1]
+            }
+            return vSub(this.midpoint, normal)
         }
     })
 }
@@ -81,6 +109,7 @@ function drawRays() {
     ctx.beginPath()
     ctx.lineWidth = 1
     ctx.strokeStyle = primaryColor
+    ctx.globalAlpha = 0.4
     for (ray of rays) {
         ctx.moveTo(ray.source[0], ray.source[1])
         for (bounce of ray.bounces) {
@@ -88,6 +117,7 @@ function drawRays() {
         }
     }
     ctx.stroke()
+    ctx.globalAlpha = 1
 }
 
 
@@ -97,17 +127,15 @@ function drawMirrors() {
     ctx.fillStyle = primaryColor
     for (mirror of mirrors) {
         if (mirror instanceof Lens) {
-            ctx.save()
             ctx.beginPath()
-
             ctx.globalAlpha = 0.4
             ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
                 2 * mirror.radius, mirror.radius / 10,
                 mirror.rotation, 0, 2 * Math.PI)
 
             ctx.fill()
-            ctx.restore()
             ctx.stroke()
+            ctx.globalAlpha = 1
         } else {
             ctx.beginPath()
             ctx.moveTo(mirror.p1[0], mirror.p1[1])
@@ -151,7 +179,7 @@ function recursiveRaytrace(position, direction, remainingBounces, bounces = []) 
         intersection.dir = direction
         for (mirror of mirrors) {
             const res = lineIntersects(position, direction, mirror)
-            if (res.dist < intersection.dist && res.dist > 1e-2) {
+            if (res.dist < intersection.dist && res.dist > 1e-6) {
                 intersection = res
             }
         }
@@ -180,12 +208,14 @@ function lineIntersects(rayOrigin, direction, mirror) {
 
     xres = c / (a - b)
     yres = a * xres
+    if (b == 0) //fixes edge cases with rounding errors
+        yres = s1[1]
 
     if (!isFinite(b)) { //vertical mirror
         xres = s1[0]
         yres = a * s1[0]
     }
-    if (direction[0] == 0) { //vertical ray
+    if (!isFinite(a)) { //vertical ray
         xres = 0
         yres = c
     }
@@ -194,12 +224,12 @@ function lineIntersects(rayOrigin, direction, mirror) {
         if (yres <= Math.max(s1[1], s2[1]) && yres >= Math.min(s1[1], s2[1]))
             if (Math.sign(xres) == Math.sign(direction[0]) && Math.sign(yres) == Math.sign(direction[1])) {
                 normal = (b == 0) ? [0, 1] : [1, -1 / b]
-                intersectionPoint = [xres + rayOrigin[0], yres + rayOrigin[1]]
+                intersectionPoint = vSub(rayOrigin, [-xres, -yres])
                 return {
                     p: intersectionPoint, //intersection point
                     dist: (xres ** 2 + yres ** 2), //squared distance
                     dir: mirror instanceof Lens ?
-                        transmissionDirection(direction, vSub(rayOrigin, [-xres, -yres]), mirror) :
+                        transmissionDirection(direction, normal, rayOrigin, intersectionPoint, mirror) :
                         linearReflection(direction, normal)
                 }
             }
@@ -207,20 +237,19 @@ function lineIntersects(rayOrigin, direction, mirror) {
     return { p: false, dist: Infinity, dir: direction }
 }
 
-function transmissionDirection(direction, intersection, lens) {
+function transmissionDirection(direction, normal, rayOrigin, intersection, lens) {
+
     v = vSub(lens.midpoint, intersection)
     v2 = vSub(lens.p2, intersection)
     r = length(v)
-
-    gamma = Math.PI / 2 - Math.atan2(v2[1], v2[0])
+    gamma = Math.atan2(normal[1], normal[0])
     alpha = Math.atan2(direction[1], direction[0]) - gamma
-    alpha = alpha % (2 * Math.PI)
 
-    if (Math.sign(v[0] * v2[0]) > 0 || Math.sign(v[1] * v2[1]) >= 0)
+    if (length(vSub(rayOrigin, lens.f1)) < length(vSub(rayOrigin, lens.f2)))
         r = -r
-    //ctx.fillStyle = secondaryColor
-    //ctx.font = "20px Arial"
-    //ctx.fillText(Math.round(alpha * 180 / Math.PI), intersection[0], intersection[1])
+
+    if (length(vSub(v2, v)) > length(v2)) //upper lens half or lower lens half
+        r = -r
     return [Math.cos(alpha + gamma - r / lens.focalpoint), Math.sin(alpha + gamma - r / lens.focalpoint)]
 }
 

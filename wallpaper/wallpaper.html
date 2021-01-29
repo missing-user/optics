@@ -2,27 +2,17 @@
 <html lang="en" dir="ltr">
 
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-179475953-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-    gtag('js', new Date());
-
-    gtag('config', 'UA-179475953-1');
-  </script>
   <meta charset="utf-8">
   <title>Optics</title>
   <!-- MOBILE––––––––––––––––––––––– -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;600&display=swap" rel="stylesheet">
   <!-- CSS––––––––––––––––––––––– -->
-  <link rel="stylesheet" href="css/normalize.css">
-  <link rel="stylesheet" href="css/skeleton.css">
-  <link rel="stylesheet" href="css/darkskelleton.css" media="(prefers-color-scheme: dark)">
-  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="stylesheet" href="./css/normalize.css">
+  <link rel="stylesheet" href="./css/skeleton.css">
+  <link rel="stylesheet" href="./css/darkskelleton.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" type="image/png" href="./images/favicon.png">
 </head>
 
 <body>
@@ -46,31 +36,29 @@
       -ms-user-select: none;
       user-select: none;
     }
+
+    .container {
+      margin: 5rem 5rem 0 auto;
+      max-width: 501px;
+    }
+
+    .column {
+      text-align: right;
+    }
+	
+	details{
+      text-align: right;}
   </style>
-  <!-- detect color scheme -->
+  <!-- set dark color scheme -->
   <script type="text/javascript">
     var secondaryColor = "#F00"
-    var primaryColor = "#333"
-
-    //set the colorscheme
-    if (window.matchMedia) {
-      window.matchMedia("(prefers-color-scheme: dark)").addListener(e => {
-        primaryColor = e.matches ? "#d3d7cf" : "#333"
-        console.log("theme change detected, setting color to", primaryColor)
-      })
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-        primaryColor = "#d3d7cf"
-    }
+    var primaryColor = "#d3d7cf"
   </script>
   <div class="container no-copy">
-    <div class="row">
-      <div class="column" style="margin-top: 25%">
-        <h1>Optics</h1>
-        <hr>
-      </div>
-    </div>
+  <details open>
+    <summary>Controls</summary>
     <div class="row" id="safeZone">
-      <div class="one-half column">
+      <div class="column">
         <button class="button-primary" onclick="clearAll()">Clear</button>
         <button class="button-primary" onclick="undo()">Undo</button>
         <button onclick="drawMode='lasers'">Lasers</button>
@@ -79,19 +67,47 @@
         <button onclick="drawMode='lenses'">Lenses</button>
         <button onclick="drawMode='blockers'">Blockers</button>
       </div>
-      <div class="one-half column">
-        <label for="densityslider">ray density</label>
+      <div style="display: none;">
         <input id="densityslider" type="range" name="" step="any" value="1" max="5"
           oninput="updateLights(); updateSim()" style="margin-bottom: 3rem;">
-        <label for="focalDistance">focal distance</label>
         <input id="focalDistance" type="range" name="" step="any" value="300" min="-500" max="500">
       </div>
     </div>
+</details>
+  </div>
+  
   </div>
   </div>
-  </div>
-  <script type="text/javascript" src="scripts/script.js"></script>
-  <script type="text/javascript" src="scripts/interactive.js"></script>
+  <script type="text/javascript" src="./scripts/script.js"></script>
+  <script type="text/javascript" src="./scripts/interactive.js"></script>
+  <script>
+    function toColor(prop) {
+      var customColor = prop.value.split(' ');
+      customColor = customColor.map(function (c) {
+        return Math.ceil(c * 255);
+      });
+      return 'rgb(' + customColor + ')';
+    }
+
+    window.wallpaperPropertyListener = {
+      applyUserProperties: function (properties) {
+        if (properties.primarycolor)
+          primaryColor = toColor(properties.primarycolor)
+        if (properties.secondarycolor)
+          secondaryColor = toColor(properties.secondarycolor)
+        if (properties.backgroundcolor)
+          document.body.style.background = toColor(properties.backgroundcolor)
+
+        if (properties.raydensity)
+          document.getElementById("densityslider").value = properties.raydensity.value
+		if (properties.focallength)
+          document.getElementById("focalDistance").value = properties.focallength.value
+        updateLights()
+        updateSim()
+      },
+    }
+
+  </script>
 </body>
 
 </html>

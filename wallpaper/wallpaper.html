@@ -45,9 +45,10 @@
     .column {
       text-align: right;
     }
-	
-	details{
-      text-align: right;}
+
+    details {
+      text-align: right;
+    }
   </style>
   <!-- set dark color scheme -->
   <script type="text/javascript">
@@ -55,27 +56,28 @@
     var primaryColor = "#d3d7cf"
   </script>
   <div class="container no-copy">
-  <details open>
-    <summary>Controls</summary>
-    <div class="row" id="safeZone">
-      <div class="column">
-        <button class="button-primary" onclick="clearAll()">Clear</button>
-        <button class="button-primary" onclick="undo()">Undo</button>
-        <button onclick="drawMode='lasers'">Lasers</button>
-        <button onclick="drawMode='mirrors'">Mirrors</button>
-        <button onclick="drawMode='parabolas'">Parabolic mirror</button>
-        <button onclick="drawMode='lenses'">Lenses</button>
-        <button onclick="drawMode='blockers'">Blockers</button>
+    <details open>
+      <summary>Controls</summary>
+      <div class="row" id="safeZone">
+        <div class="column">
+          <button class="button-primary" onclick="clearAll()">Clear</button>
+          <button class="button-primary" onclick="undo()">Undo</button>
+          <button onclick="drawMode=Laser">Lasers</button>
+          <button onclick="drawMode=Mirror">Mirrors</button>
+          <!--<button onclick="drawMode=ParabolicMirror">Parabolic mirror</button>-->
+          <button onclick="drawMode=SphericalMirror">Spherical mirror</button>
+          <button onclick="drawMode=Lens">Lenses</button>
+          <button onclick="drawMode=Block">Blockers</button>
+        </div>
+        <div style="display: none;">
+          <input id="densityslider" type="range" name="" step="any" value="1" max="5"
+            oninput="updateLights(); updateSim()" style="margin-bottom: 3rem;">
+          <input id="focalDistance" type="range" name="" step="any" value="300" min="-500" max="500">
+        </div>
       </div>
-      <div style="display: none;">
-        <input id="densityslider" type="range" name="" step="any" value="1" max="5"
-          oninput="updateLights(); updateSim()" style="margin-bottom: 3rem;">
-        <input id="focalDistance" type="range" name="" step="any" value="300" min="-500" max="500">
-      </div>
-    </div>
-</details>
+    </details>
   </div>
-  
+
   </div>
   </div>
   <script type="text/javascript" src="./scripts/script.js"></script>
@@ -100,7 +102,7 @@
 
         if (properties.raydensity)
           document.getElementById("densityslider").value = properties.raydensity.value
-		if (properties.focallength)
+        if (properties.focallength)
           document.getElementById("focalDistance").value = properties.focallength.value
         updateLights()
         updateSim()

@@ -317,7 +317,7 @@ function circleIntersection(rayOrigin, direction, mirror) {
         d[1] * (mirror.midpoint[1] - rayOrigin[1])
     e = [t * d[0] + rayOrigin[0], t * d[1] + rayOrigin[1]] //closest point on line to circle
 
-    if (dist2(vSub(mirror.midpoint, e)) > mirror.radius ** 2) //no intersection with circle
+    if (dist2(vSub(mirror.midpoint, e)) >= mirror.radius ** 2) //no intersection with circle
         return { p: false, dist: Infinity, dir: direction }
 
     dt = Math.sqrt(mirror.radius ** 2 - dist2(vSub(mirror.midpoint, e)))
@@ -347,8 +347,8 @@ function circleIntersection(rayOrigin, direction, mirror) {
     }
     function validateDirection(intersect) {
         //is the intersection in front of the ray source or behind it?
-        return ((intersect[0] - rayOrigin[0]) / direction[0] > 0
-            && (intersect[1] - rayOrigin[1]) / direction[1] > 0)
+        return (Math.sign(intersect[0] - rayOrigin[0]) == Math.sign(direction[0])
+            && Math.sign(intersect[1] - rayOrigin[1]) == Math.sign(direction[1]))
     }
     function validateDistance(intersect) {
         //prevent reflecting the source ray 
@@ -402,7 +402,8 @@ function lineIntersects(rayOrigin, direction, mirror) {
     //check if line is within mirror bounds
     if (xres <= Math.max(s1[0], s2[0]) && xres >= Math.min(s1[0], s2[0]))
         if (yres <= Math.max(s1[1], s2[1]) && yres >= Math.min(s1[1], s2[1]))
-            if (Math.sign(xres) == Math.sign(direction[0]) && Math.sign(yres) == Math.sign(direction[1])) {
+            if (Math.sign(xres) == Math.sign(direction[0])
+                && Math.sign(yres) == Math.sign(direction[1])) {
                 normal = (b == 0) ? [0, 1] : [1, -1 / b]
                 intersectionPoint = vSub(rayOrigin, [-xres, -yres])
                 return {

@@ -94,6 +94,38 @@ function ParabolicMirror(p1, p2 = [-1, -1], focalpoint = 300) {
     }
 }
 
+function SphericalMirror(p1, p2 = [-1, -1], focalpoint = 300) {
+    Mirror.call(this, p1, p2) //inherits from mirror
+    this.focalpoint = focalpoint
+    Object.defineProperty(this, 'rotation', {
+        get: () => {
+            return Math.atan2(p1[1] - p2[1], p1[0] - p2[0])
+        }
+    })
+    Object.defineProperty(this, 'radius', {
+        get: () => {
+            return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) / 4
+        }
+    })
+    Object.defineProperty(this, 'midpoint', {
+        get: () => {
+            return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
+        }
+    })
+
+    this.reflect = function (direction, normal, rayOrigin, intersection) {
+        v = vSub(this.midpoint, intersection)
+        v2 = vSub(this.p2, intersection)
+        r = length(v)
+        gamma = Math.atan2(normal[1], normal[0])
+        alpha = Math.atan2(direction[1], direction[0]) - gamma
+
+        if (length(vSub(v2, v)) > length(v2)) //upper lens half or lower lens half
+            r = -r
+        return [-Math.cos(alpha + gamma + r / this.focalpoint), -Math.sin(alpha + gamma + r / this.focalpoint)]
+    }
+}
+
 function Lens(p1, p2 = [-1, -1], focalpoint = 300) {
     ParabolicMirror.call(this, p1, p2, focalpoint) //inherits from parabolic mirror
     Object.defineProperty(this, 'f1', {
@@ -176,38 +208,42 @@ function drawMirrors() {
     ctx.strokeStyle = secondaryColor
     ctx.fillStyle = primaryColor
     for (mirror of mirrors) {
-        if (mirror instanceof Lens) {
-            ctx.beginPath()
-            ctx.globalAlpha = 0.4
-            ctx.lineWidth = 1
-            ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
-                2 * mirror.radius, mirror.radius / 10,
-                mirror.rotation, 0, 2 * Math.PI)
-
-            ctx.fill()
-            ctx.globalAlpha = 1
-            ctx.stroke()
-        } else if (mirror instanceof ParabolicMirror) {
-            ctx.beginPath()
-            ctx.lineWidth = 1
-            ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
-                2 * mirror.radius, mirror.radius / 2,
-                mirror.rotation, Math.PI, 2 * Math.PI)
-
-            ctx.stroke()
-        } else if (mirror instanceof Block) {
-            ctx.beginPath()
-            ctx.lineWidth = 5
-            ctx.moveTo(mirror.p1[0], mirror.p1[1])
-            ctx.lineTo(mirror.p2[0], mirror.p2[1])
-            ctx.stroke()
-        } else {
-            ctx.beginPath()
-            ctx.lineWidth = 3
-            ctx.moveTo(mirror.p1[0], mirror.p1[1])
-            ctx.lineTo(mirror.p2[0], mirror.p2[1])
-            ctx.stroke()
+        ctx.beginPath()
+        switch (mirror.constructor) {
+            default:
+            case Mirror:
+                ctx.lineWidth = 1
+                ctx.moveTo(mirror.p1[0], mirror.p1[1])
+                ctx.lineTo(mirror.p2[0], mirror.p2[1])
+                break
+            case Lens:
+                ctx.globalAlpha = 0.4
+                ctx.lineWidth = 1
+                ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
+                    2 * mirror.radius, mirror.radius / 10,
+                    mirror.rotation, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.globalAlpha = 1
+                break
+            case ParabolicMirror:
+                ctx.lineWidth = 1
+                ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
+                    2 * mirror.radius, mirror.radius / 2,
+                    mirror.rotation, Math.PI, 2 * Math.PI)
+                break
+            case Block:
+                ctx.lineWidth = 3
+                ctx.moveTo(mirror.p1[0], mirror.p1[1])
+                ctx.lineTo(mirror.p2[0], mirror.p2[1])
+                break
+            case SphericalMirror:
+                ctx.lineWidth = 1
+                ctx.ellipse(mirror.midpoint[0], mirror.midpoint[1],
+                    2 * mirror.radius, 2 * mirror.radius,
+                    mirror.rotation, Math.PI, 2 * Math.PI)
+                break
         }
+        ctx.stroke()
     }
 }
 

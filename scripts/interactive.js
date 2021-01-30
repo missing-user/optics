@@ -1,5 +1,5 @@
 var isDrawStart = false;
-var drawMode = 'lasers'
+var drawMode = Laser
 var activeObject
 
 const getClientOffset = (event) => {
@@ -18,29 +18,11 @@ const getClientOffset = (event) => {
 }
 
 const mouseDownListener = (event) => {
-    switch (drawMode) {
-        case 'mirrors':
-            activeObject = new Mirror([getClientOffset(event).x, getClientOffset(event).y])
-            mirrors.push(activeObject)
-            break
-        default:
-        case 'lasers':
-            activeObject = new Laser([getClientOffset(event).x, getClientOffset(event).y])
-            lights.push(activeObject)
-            break
-        case 'lenses':
-            activeObject = new Lens([getClientOffset(event).x, getClientOffset(event).y])
-            mirrors.push(activeObject)
-            break
-        case 'parabolas':
-            activeObject = new ParabolicMirror([getClientOffset(event).x, getClientOffset(event).y])
-            mirrors.push(activeObject)
-            break
-        case 'blockers':
-            activeObject = new Block([getClientOffset(event).x, getClientOffset(event).y])
-            mirrors.push(activeObject)
-            break
-    }
+    activeObject = new drawMode([getClientOffset(event).x, getClientOffset(event).y])
+    if (drawMode == Laser)
+        lights.push(activeObject)
+    else
+        mirrors.push(activeObject)
     opticsHistory.push(activeObject)
     isDrawStart = true
 }

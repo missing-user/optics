@@ -51,10 +51,14 @@ const mouseMoveListener = (event) => {
         activeObject.p2[1] = lineCoordinates.y
     }
     activeObject.valid = true
-    if (activeObject instanceof Lens || activeObject instanceof ParabolicMirror) {
-        activeObject.focalpoint = document.getElementById("focalDistance").value
-    }
+    updateFocal()
     updateSim()
+}
+
+function updateFocal() {
+    console.log(activeObject);
+    if ('focalpoint' in activeObject)
+        activeObject.focalpoint = document.getElementById("focalDistance").value
 }
 
 const mouseupListener = (event) => {

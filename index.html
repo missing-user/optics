@@ -85,7 +85,8 @@
         <input id="densityslider" type="range" name="" step="any" value="1" max="5"
           oninput="updateLights(); updateSim()" style="margin-bottom: 3rem;">
         <label for="focalDistance">focal distance</label>
-        <input id="focalDistance" type="range" name="" step="any" value="300" min="-500" max="500">
+        <input id="focalDistance" oninput="updateFocal(); updateSim()" type="range" name="" step="any" value="300"
+          min="-500" max="500">
       </div>
     </div>
   </div>

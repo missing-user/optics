@@ -98,7 +98,7 @@ function SphericalMirror(p1, p2 = [-1, -1], focalpoint = 300) {
     this.focalpoint = focalpoint
     Object.defineProperty(this, 'rotation', {
         get: () => {
-            return Math.atan2(p1[1] - p2[1], p1[0] - p2[0])
+            return Math.atan2(p2[1] - p1[1], p2[0] - p1[0])
         }
     })
     Object.defineProperty(this, 'radius', {
@@ -109,20 +109,6 @@ function SphericalMirror(p1, p2 = [-1, -1], focalpoint = 300) {
     Object.defineProperty(this, 'midpoint', {
         get: () => {
             return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
-        }
-    })
-    Object.defineProperty(this, 'normal', {
-        get: () => {
-            b = (this.p2[1] - this.p1[1]) / (this.p2[0] - this.p1[0])
-            mult = Math.sign(this.p1[1] - this.p2[1])
-            normal = [1 * mult, -1 / b * mult]
-            if (b == 0) {
-                if (p1[0] < p2[0])
-                    normal = [0, 1]
-                else
-                    normal = [0, -1]
-            }
-            return normal
         }
     })
 

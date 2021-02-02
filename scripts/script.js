@@ -402,7 +402,7 @@ function lineIntersects(rayOrigin, direction, mirror) {
     return { p: false, dist: Infinity, dir: direction }
 }
 
-function undo() {
+function undo() { // skipcq: JS-0128
     lastItem = opticsHistory.pop()
     if (lastItem instanceof Laser)
         lights.pop()
@@ -412,7 +412,7 @@ function undo() {
     updateSim()
 }
 
-function clearAll() {
+function clearAll() { // skipcq: JS-0128
     opticsHistory = []
     lights = []
     rays = []

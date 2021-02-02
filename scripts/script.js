@@ -428,10 +428,6 @@ function vSub(v1, v2) {
     return [v1[0] - v2[0], v1[1] - v2[1]]
 }
 
-function vDiv(v, d) {
-    return [v[0] / d, v[1] / d]
-}
-
 function length(vector) {
     return Math.sqrt(vector[0] ** 2 + vector[1] ** 2)
 }

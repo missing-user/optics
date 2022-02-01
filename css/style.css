@@ -1,0 +1,24 @@
+input[type="radio"]{
+  accent-color: #33C3F0;
+  margin-right: 1rem;
+}
+
+:root{
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  input[type="radio"]{
+    accent-color: #fcaf3e;
+  }
+}
+
+em{
+  font-size: 3.0rem;
+}
+
+@media (max-width: 768px) {
+  em{
+    font-size: 2rem;
+  }
+}

@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/normalize.css">
   <link rel="stylesheet" href="css/skeleton.css">
   <link rel="stylesheet" href="css/darkskelleton.css" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="icon" type="image/png" href="./images/favicon.png">
 </head>
 
@@ -59,23 +60,37 @@
       </div>
     </div>
     <div class="row" id="safeZone">
+     
       <div class="one-half column">
-        <button class="button-primary" onclick="clearAll()">Clear</button>
+        <button class="button" onclick="clearAll()">Clear</button>
         <button class="button-primary" onclick="undo()">Undo</button>
-        <button onclick="drawMode=Laser">Lasers</button>
+        <label for="densityslider">ray density
+        <input id="densityslider" type="range" name="" step="any" value="1" max="5"
+          oninput="updateLights(); updateSim()" style="margin-bottom: 4rem;"></label>
+        <label for="focalDistance">focal distance
+        <input id="focalDistance" oninput="updateFocal(); updateSim()" type="range" name="" step="any" value="300"
+          min="-500" max="500"></label>
+      </div>
+
+      <div class="one-half column">
+        <!--<button onclick="drawMode=Laser">Lasers</button>
         <button onclick="drawMode=Mirror">Mirrors</button>
-        <!--<button onclick="drawMode=ParabolicMirror">Parabolic mirror</button>-->
         <button onclick="drawMode=SphericalMirror">Spherical mirror</button>
         <button onclick="drawMode=Lens">Lenses</button>
         <button onclick="drawMode=Block">Blockers</button>
-      </div>
-      <div class="one-half column">
-        <label for="densityslider">ray density</label>
-        <input id="densityslider" type="range" name="" step="any" value="1" max="5"
-          oninput="updateLights(); updateSim()" style="margin-bottom: 3rem;">
-        <label for="focalDistance">focal distance</label>
-        <input id="focalDistance" oninput="updateFocal(); updateSim()" type="range" name="" step="any" value="300"
-          min="-500" max="500">
+        -->
+        <b>Select draw mode:    </b>
+          <div>
+            <input type="radio" name="drawmode" value="Laser" onclick="drawMode=Laser" checked>Laser</div>        
+          <div>
+            <input type="radio" name="drawmode" value="Mirror" onclick="drawMode=Mirror">Mirror</div>          
+          <div>
+            <input type="radio" name="drawmode" value="SphericalMirror" onclick="drawMode=SphericalMirror">Spherical Mirror</div>
+          <div>
+            <input type="radio" name="drawmode" value="Lens" onclick="drawMode=Lens">Lenses</div>          
+          <div>
+            <input type="radio" name="drawmode" value="Block" onclick="drawMode=Block">Blockers</div>
+        
       </div>
     </div>
   </div>

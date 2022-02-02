@@ -64,42 +64,6 @@ function Block(p1, p2 = [-1, -1]) {
   };
 }
 
-function ParabolicMirror(p1, p2 = [-1, -1], focalpoint = 300) {
-  Mirror.call(this, p1, p2); //inherits from mirror
-  this.focalpoint = focalpoint;
-  Object.defineProperty(this, "rotation", {
-    get: () => {
-      return Math.atan2(p1[1] - p2[1], p1[0] - p2[0]);
-    },
-  });
-  Object.defineProperty(this, "radius", {
-    get: () => {
-      return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) / 2;
-    },
-  });
-  Object.defineProperty(this, "midpoint", {
-    get: () => {
-      return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
-    },
-  });
-
-  this.reflect = function (direction, normal, rayOrigin, intersection) {
-    v = vSub(this.midpoint, intersection);
-    v2 = vSub(this.p2, intersection);
-    r = length(v);
-    gamma = Math.atan2(normal[1], normal[0]);
-    alpha = Math.atan2(direction[1], direction[0]) - gamma;
-
-    if (length(vSub(v2, v)) > length(v2))
-      //upper lens half or lower lens half
-      r = -r;
-    return [
-      -Math.cos(alpha + gamma + r / this.focalpoint),
-      -Math.sin(alpha + gamma + r / this.focalpoint),
-    ];
-  };
-}
-
 function SphericalMirror(p1, p2 = [-1, -1], focalpoint = 300) {
   Mirror.call(this, p1, p2); //inherits from mirror
   this.focalpoint = focalpoint;
@@ -131,7 +95,23 @@ function SphericalMirror(p1, p2 = [-1, -1], focalpoint = 300) {
 }
 
 function Lens(p1, p2 = [-1, -1], focalpoint = 300) {
-  ParabolicMirror.call(this, p1, p2, focalpoint); //inherits from parabolic mirror
+  Mirror.call(this, p1, p2); //inherits from mirror
+  this.focalpoint = focalpoint;
+  Object.defineProperty(this, "rotation", {
+    get: () => {
+      return Math.atan2(p1[1] - p2[1], p1[0] - p2[0]);
+    },
+  });
+  Object.defineProperty(this, "radius", {
+    get: () => {
+      return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) / 2;
+    },
+  });
+  Object.defineProperty(this, "midpoint", {
+    get: () => {
+      return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+    },
+  });
   Object.defineProperty(this, "f1", {
     get: () => {
       b = (this.p2[1] - this.p1[1]) / (this.p2[0] - this.p1[0]);
@@ -175,6 +155,54 @@ function Lens(p1, p2 = [-1, -1], focalpoint = 300) {
       Math.sin(alpha + gamma - r / this.focalpoint),
     ];
   };
+
+  this.draw = function () {
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 1;
+
+    if (this.focalpoint > 0)
+      ctx.ellipse(
+        this.midpoint[0],
+        this.midpoint[1],
+        this.radius,
+        this.radius / (Math.abs(this.focalpoint) / 50 + 4),
+        this.rotation,
+        0,
+        2 * Math.PI
+      );
+    else {
+      //diverging lens
+      let normal = [
+        200 * Math.sin(this.rotation),
+        -200 * Math.cos(this.rotation),
+      ];
+
+      let focaPointMult = 1 / (Math.abs(this.focalpoint) / 50 + 4);
+
+      ctx.ellipse(
+        this.midpoint[0] + focaPointMult * normal[0],
+        this.midpoint[1] + focaPointMult * normal[1],
+        this.radius,
+        this.radius * focaPointMult,
+        this.rotation,
+        0,
+        Math.PI
+      );
+
+      ctx.ellipse(
+        this.midpoint[0] - focaPointMult * normal[0],
+        this.midpoint[1] - focaPointMult * normal[1],
+        this.radius,
+        this.radius / (Math.abs(this.focalpoint) / 50 + 4),
+        this.rotation,
+        Math.PI,
+        2 * Math.PI
+      );
+    }
+
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  };
 }
 
 var opticsHistory = [];
@@ -209,7 +237,7 @@ function drawRays() {
 function drawMirrors() {
   ctx.strokeStyle = secondaryColor;
   ctx.fillStyle = primaryColor;
-  for (mirror of mirrors) {
+  for (const mirror of mirrors) {
     ctx.beginPath();
     switch (mirror.constructor) {
       default:
@@ -219,31 +247,7 @@ function drawMirrors() {
         ctx.lineTo(mirror.p2[0], mirror.p2[1]);
         break;
       case Lens:
-        ctx.globalAlpha = 0.4;
-        ctx.lineWidth = 1;
-        ctx.ellipse(
-          mirror.midpoint[0],
-          mirror.midpoint[1],
-          mirror.radius,
-          mirror.radius / 20,
-          mirror.rotation,
-          0,
-          2 * Math.PI
-        );
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        break;
-      case ParabolicMirror:
-        ctx.lineWidth = 1;
-        ctx.ellipse(
-          mirror.midpoint[0],
-          mirror.midpoint[1],
-          mirror.radius,
-          mirror.radius / 4,
-          mirror.rotation,
-          Math.PI,
-          2 * Math.PI
-        );
+        mirror.draw();
         break;
       case Block:
         ctx.lineWidth = 3;
@@ -303,7 +307,7 @@ function recursiveRaytrace(
     var intersection = {};
     intersection.dist = Infinity;
     intersection.dir = direction;
-    for (mirror of mirrors) {
+    for (const mirror of mirrors) {
       if (mirror instanceof SphericalMirror) {
         const res = circleIntersection(position, direction, mirror);
         if (res.dist < intersection.dist && res.dist > 1e-6) intersection = res;

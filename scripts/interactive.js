@@ -60,7 +60,9 @@ const mouseMoveListener = (event) => {
 
 function updateFocal() {
   if ("focalpoint" in activeObject)
-    activeObject.focalpoint = document.getElementById("focalDistance").value;
+    activeObject.focalpoint = parseFloat(
+      document.getElementById("focalDistance").value
+    );
 }
 
 const mouseupListener = (event) => {

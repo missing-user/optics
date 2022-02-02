@@ -93,12 +93,16 @@ function stopProp(ev) {
   ev.stopPropagation();
 }
 
+//setup the default scene
+
 lights = [new Laser([100, 300], [100, 700])];
 lights[0].valid = true;
+
 mirrors = [
   new Mirror([350, 300], [150, 500]),
   new Lens([135, 250], [365, 250], 200),
 ];
-mirrors[0].valid = true;
+//validate all mirrors and lenses
+for (var i = 0; i < mirrors.length; i++) mirrors[i].valid = true;
 
 updateSim();

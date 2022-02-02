@@ -18,25 +18,7 @@
 <body style="overscroll-behavior-y: contain;">
 
   <canvas id="canvas"></canvas>
-  <style>
-    #canvas {
-      width: 100%;
-      height: 100%;
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: -1;
-    }
 
-    .no-copy {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-  </style>
   <!-- detect color scheme -->
   <script type="text/javascript">
     var secondaryColor = "#F00"
@@ -52,6 +34,7 @@
         primaryColor = "#d3d7cf"
     }
   </script>
+  
   <div class="container no-copy">
     <div class="row">
       <div class="column" style="margin-top: 25%; padding-bottom: 1.6em;">

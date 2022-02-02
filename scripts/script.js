@@ -455,6 +455,9 @@ function undo() {
   if (lastItem instanceof Laser) lights.pop();
   else mirrors.pop();
 
+  if (opticsHistory.length > 0)
+    activeObject = opticsHistory[opticsHistory.length - 1];
+
   updateSim();
   console.log("undo");
 }
